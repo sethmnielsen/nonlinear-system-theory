@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/home/seth/.virtualenvs/v38/bin/python"
+    "python.pythonPath": "/home/seth/.virtualenvs/v38/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true
 }
