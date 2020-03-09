@@ -7,17 +7,15 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-plt.style.use('dark_background')
+import seaborn as sns
 
-# import seaborn as sns
-# sns.set_style('darkgrid')
-
+from typing import Dict
 
 class PhasePlotter:
     
     def __init__(self, eqpts, calc_xdot: callable):
         self.cmap = 'Oranges_r'
-        self.fig1, self.ax1 = plt.subplots()
+        self.fig1, self.ax1 = plt.subplots(figsize=(18,18))
         self.ax1: Axes
         
         self.eqpts = np.array(eqpts)
@@ -32,8 +30,8 @@ class PhasePlotter:
         x_arr = np.vstack(( np.linspace(-abs(w+a), w+a, m), np.linspace(-abs(w+a), w+a, m) ))
         x1, x2 = np.meshgrid(x_arr[0], x_arr[1])
         
-        self.x1d = -(x1 + x1**3) + 2*x2
-        self.x2d = 2*x1 - (x2 + x2**3)
+        self.x1d, self.x2d = self.calc_xdot([x1,x2])
+       
         
         self.x1, self.x2 = x1, x2
         
@@ -47,7 +45,7 @@ class PhasePlotter:
         self.ax1.set_ylim(-w,w)
         
     
-    def plot_phases(self, params=None):
+    def plot_phases(self, params:Dict=None):
         self.states_meshgrid()
         self.plot_axes()        
 
@@ -63,10 +61,12 @@ class PhasePlotter:
                     'headlength': 4.0,
                     'headaxislength': 4.0,
                     'width': 0.004,
-                    'cmap': matplotlib.cm.get_cmap(self.cmap),
+                    'cmap': None,
                     'alpha': 0.9}
         if params is not None:
             params_.update(params)
+            cmap = params_['cmap']
+            params_['cmap'] = matplotlib.cm.get_cmap(cmap) if cmap is not None else None  
         Q = self.ax1.quiver(self.x1, self.x2, x1d_ulen, x2d_ulen, M, **params_)
         
 
@@ -103,18 +103,34 @@ class PhasePlotter:
         lvls = [0,c]
         Vdot_params = {'levels': lvls,
                        'alpha': 0.9,
-                       'cmap': matplotlib.cm.get_cmap('bone_r')}
+                       'cmap': matplotlib.cm.get_cmap('viridis')}
+                    #    'cmap': matplotlib.cm.get_cmap('bone_r')}
         for pt in self.eqpts:
             CS = self.ax1.contour(z1+pt[0], z2+pt[1], Vz, **Vdot_params)
             
         self.ax1.clabel(CS, inline=1, fontsize=10)
     
-    def set_properties(self, width=4, offset=0, mgrid_sz=42, seed=None):
-        self.PLOT_WIDTH = width
-        self.PLOT_OFFSET = offset
-        self.MGRID_SIZE = mgrid_sz
+    def set_properties(self, props:Dict=None):
+        props_ = {'figsize': [10,10],
+                  'style': None, 
+                  'width': 4,
+                  'offset': 0,
+                  'mgrid_sz': 42,
+                  'seed': None}
         
-        self.RNG_SEED = seed
+        if props is not None:
+            for key in props.keys():
+                if not key in props_:
+                    raise KeyError('Not a vlid property')
+            props_.update(props)
+            
+        sns.set_style(props_['style'])
+        plt.rcParams['figure.figsize'] = props_['figsize'] 
+        self.PLOT_WIDTH = props_['width']
+        self.PLOT_OFFSET = props_['offset']
+        self.MGRID_SIZE = props_['mgrid_sz']
+        
+        self.RNG_SEED = props_['seed']
         
     def draw_plots(self):
         plt.show()
