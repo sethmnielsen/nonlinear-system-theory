@@ -13,15 +13,14 @@ from typing import Dict
 
 class PhasePlotter:
     
-    def __init__(self, eqpts, calc_xdot: callable):
-        self.cmap = 'Oranges_r'
+    def __init__(self, eqpts, calc_xdot: callable, props:Dict=None):
+        self.set_properties(props)
+        
         self.fig1, self.ax1 = plt.subplots(figsize=(18,18))
         self.ax1: Axes
         
         self.eqpts = np.array(eqpts)
         self.calc_xdot = calc_xdot
-        
-        self.set_properties()
         
     def states_meshgrid(self):
         w = self.PLOT_WIDTH 
@@ -54,23 +53,25 @@ class PhasePlotter:
         M = np.hypot(self.x1d, self.x2d)
         
         params_ = {'units': 'xy',
-                    'angles': 'xy',
-                    'scale': 400.0/self.MGRID_SIZE,
-                    'scale_units': 'xy',
-                    'headwidth': 4.0,
-                    'headlength': 4.0,
-                    'headaxislength': 4.0,
-                    'width': 0.004,
-                    'cmap': None,
-                    'alpha': 0.9}
+                   'angles': 'xy',
+                   'scale': 400.0/self.MGRID_SIZE,
+                   'headwidth': 4.0,
+                   'headlength': 4.0,
+                   'headaxislength': 4.0,
+                   'width': 0.004,
+                   'cmap': None,
+                   'alpha': 0.9}
         if params is not None:
             params_.update(params)
-            cmap = params_['cmap']
-            params_['cmap'] = matplotlib.cm.get_cmap(cmap) if cmap is not None else None  
+            cmap = params_['cmap'] 
+            if cmap is not None and cmap.casefold() in map(str.casefold, matplotlib.cm.cmap_d.keys()):
+                for key in matplotlib.cm.cmap_d.keys():
+                    cmap = key if cmap.casefold() == key.casefold() else cmap
+            params_['cmap'] = cmap
         Q = self.ax1.quiver(self.x1, self.x2, x1d_ulen, x2d_ulen, M, **params_)
         
 
-    def plot_trajectories(self, num:int=10):
+    def plot_trajectories(self, num:int=10, params=None):
         rng: np.random.Generator = np.random.default_rng(self.RNG_SEED)
         x0 = rng.uniform(-3.0, 3.0, size=(num,2))
         
@@ -79,14 +80,17 @@ class PhasePlotter:
         
         traj = np.array([integrate.odeint(self.calc_xdot, x0i, t).T for x0i in x0])
         
-        trj_params = {'color': 'blue',
-                      'marker': 'o',
-                      'linestyle': 'dashed',
-                      'linewidth': 0.9,
-                      'markersize': 3.0,
-                      'markevery': n}
+        params_ = {'color': 'blue',
+                   'marker': 'o',
+                   'linestyle': 'dashed',
+                   'linewidth': 0.9,
+                   'markersize': 3.0,
+                   'markevery': n}
+        if params is not None and len(params) != 0:
+            params_.update(params)
+            
         for trj in traj:
-            self.ax1.plot(trj[0], trj[1], **trj_params)
+            self.ax1.plot(trj[0], trj[1], **params_)
         
     
     def plot_level_curves(self, calc_V, calc_Vdot):
@@ -116,15 +120,16 @@ class PhasePlotter:
                   'width': 4,
                   'offset': 0,
                   'mgrid_sz': 42,
-                  'seed': None}
+                  'seed': None,
+                  'rc': None}
         
         if props is not None:
             for key in props.keys():
-                if not key in props_:
-                    raise KeyError('Not a vlid property')
+                if not key in props_.keys():
+                    raise KeyError('Not a valid property')
             props_.update(props)
             
-        sns.set_style(props_['style'])
+        sns.set_style(props_['style'], props_['rc'])
         plt.rcParams['figure.figsize'] = props_['figsize'] 
         self.PLOT_WIDTH = props_['width']
         self.PLOT_OFFSET = props_['offset']
