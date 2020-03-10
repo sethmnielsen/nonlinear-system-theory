@@ -6,7 +6,7 @@ from scipy import integrate
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 import seaborn as sns
 
@@ -16,17 +16,12 @@ class PhasePlotter:
     
     def __init__(self, eqpts, calc_xdot: callable, props:Dict=None):
         self.set_properties(props)
-        is_3d = False 
         proj = None
         if self.NDIM == 3:
-            is_3d = True
             proj = '3d'
         self.fig1, self.ax1 = plt.subplots(subplot_kw=dict(projection=proj))
         
-        if is_3d:
-            self.ax1: Axes3D
-        else:
-            self.ax1: Axes
+        self.ax1: Axes
         
         self.eqpts = np.array(eqpts)
         self.calc_xdot = calc_xdot
@@ -39,9 +34,10 @@ class PhasePlotter:
         self.xmesh = np.meshgrid(*x_arr)
         
         self.xdot = self.calc_xdot(self.xmesh)
+        self.xdot = np.array(self.xdot)
         
-        self.x1, self.x2 = self.xmesh
-        self.x1d, self.x2d = self.xdot
+        # self.x1, self.x2 = self.xmesh
+        # self.x1d, self.x2d = self.xdot
         
     def plot_axes(self):
         w = self.PLOT_WIDTH
@@ -53,7 +49,7 @@ class PhasePlotter:
         else:
             self.ax1.plot([-w,w], [0,0], color='0', linewidth='0.7')
             self.ax1.plot([0,0], [-w,w], color='0', linewidth='0.7')
-        self.ax1.set_aspect('equal')
+            self.ax1.set_aspect('equal')
         
     
     def plot_phases(self, params:Dict=None):
@@ -71,15 +67,27 @@ class PhasePlotter:
         # x2d_ulen = self.x2d / np.sqrt(self.x1d**2 + self.x2d**2)
         # M = np.hypot(self.x1d, self.x2d)
         
-        params_ = {'units': 'xy',
-                   'angles': 'xy',
-                   'scale': 400.0/self.MGRID_SIZE,
-                   'headwidth': 4.0,
-                   'headlength': 4.0,
-                   'headaxislength': 4.0,
-                   'width': 0.004,
-                   'cmap': None,
-                   'alpha': 0.9}
+        if self.NDIM == 2:
+            params_ = {
+                'units': 'xy',
+                'angles': 'xy',
+                'scale': 400.0/self.MGRID_SIZE,
+                'headwidth': 4.0,
+                'headlength': 4.0,
+                'headaxislength': 4.0,
+                'width': 0.004,
+                'cmap': None,
+                'alpha': 0.9
+            }
+        else:
+            params_ = {
+                'length': 0.2,
+                'arrow_length_ratio': 0.3,
+                'normalize': False,
+                'linewidths': None,
+                'cmap': None,
+                'norm': xdot_ulen
+            }
         if params is not None:
             params_.update(params)
             cmap = params_['cmap'] 
@@ -88,15 +96,17 @@ class PhasePlotter:
                     cmap = key if cmap.casefold() == key.casefold() else cmap
             params_['cmap'] = cmap
         # Q = self.ax1.quiver(self.x1, self.x2, self.xd1, norm2, **params_)
-        Q = self.ax1.quiver(*self.xmesh, *xdot_ulen, norm2, **params_)
+        if self.NDIM == 2:
+            Q = self.ax1.quiver(*self.xmesh, *xdot_ulen, norm2, **params_)
+        else:
+            Q = self.ax1.quiver(*self.xmesh, *self.xdot, **params_)
         
 
-    def plot_trajectories(self, num:int=10, params=None):
+    def plot_trajectories(self, n_traj:int=10, n_tsteps=400, tf=10, params=None):
         rng: np.random.Generator = np.random.default_rng(self.RNG_SEED)
-        x0 = rng.uniform(-3.0, 3.0, size=(num,2))
+        x0 = rng.uniform(-self.PLOT_WIDTH, self.PLOT_WIDTH, size=(n_traj,2))
         
-        n = 400
-        t = np.linspace(0, num, n)
+        t = np.linspace(0, tf, n_tsteps)
         
         traj = np.array([integrate.odeint(self.calc_xdot, x0i, t).T for x0i in x0])
         
@@ -105,7 +115,7 @@ class PhasePlotter:
                    'linestyle': 'dashed',
                    'linewidth': 0.9,
                    'markersize': 3.0,
-                   'markevery': n}
+                   'markevery': n_tsteps}
         if params is not None and len(params) != 0:
             params_.update(params)
             

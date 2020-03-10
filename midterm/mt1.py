@@ -4,7 +4,7 @@ import sys
 sys.path.append("..")
 from phase_portrait import PhasePlotter
 
-def calc_xdot(x, t0=0, mu=-1.4):
+def calc_xdot(x, t0=0, mu=-0.0009):
     x1 = x[0]
     x2 = x[1]
    
@@ -13,7 +13,7 @@ def calc_xdot(x, t0=0, mu=-1.4):
     return np.array([x1d, x2d])
     
 props = {
-    'width': 4.0,
+    'width': 0.1,
     'mgrid_sz': 40,
     'figsize': [18,18],
     'style': None,
@@ -22,16 +22,17 @@ props = {
 ph = PhasePlotter([0,0], calc_xdot, props)
 
 phase_params = {
-    # 'units': 'inches',
-    # 'scale': 10,
-    'cmap': 'ylorrd'
+    'units': 'dots',
+    'scale': 10,
+    # 'cmap': 'ylorrd'
+    'cmap': 'Reds'
 }
 ph.plot_phases(params=phase_params)
 
 traj_params = {
     'color': None 
 }
-ph.plot_trajectories(params=traj_params)
+ph.plot_trajectories(n_tsteps=4000, tf=200,params=traj_params)
 
 ph.draw_plots()
 
