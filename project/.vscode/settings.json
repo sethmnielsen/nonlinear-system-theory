@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "*.*rc": "shellscript",
+        "*.launch": "xml",
+        "CMakeLists.txt": "cmake",
+        "<ipython-input*": "python",
+        "*.tex": "latex",
+        ".vimrc": "vimrc",
+        "core": "cpp"
+    },
+    "C_Cpp.intelliSenseEngineFallback": "Disabled"
+}
