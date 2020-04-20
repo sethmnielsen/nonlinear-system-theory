@@ -1,10 +1,13 @@
 #include "spacecraft_sim/spacecraft_sim.h"
 
-SpacecraftSim::SpacecraftSim(Ref<Vector16d> x0)
+SpacecraftSim::SpacecraftSim(Ref<Vector16d> x0, double dt)
 {
   x_.arr = x0;
-  State *x_point = &x_;
+  dt_us_ = dt * 1e6;
   
+  for (size_t i = 0; i < 14; i++)
+    pwm_outputs_[i] = 1000;
+ 
   setMAVParams();
 }
 
@@ -38,7 +41,7 @@ void SpacecraftSim::run()
   while (t_end > now_us_)
   {
     now_us_ += dt_us_;
-    dynamics_->stepDynamics(x_, outputs_, imu_update_period_us_*1e-6, xp_);
+    dynamics_->stepDynamics(x_, pwm_outputs_, imu_update_period_us_*1e-6, xp_);
     x_ = xp_;
   }
 }

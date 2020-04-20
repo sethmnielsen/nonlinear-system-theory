@@ -1,0 +1,37 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "spacecraft_sim.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/python/spacecraft_sim.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "spacecraft_cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/seth/.virtualenvs/v3.8/bin/python3",
+            "args": [
+                "/home/seth/school/nonlinear/project/python/spacecraft_sim.py"
+            ],
+            "stopAtEntry": false,
+            "cwd": "/home/seth/school/nonlinear/project/python",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+    ]
+}

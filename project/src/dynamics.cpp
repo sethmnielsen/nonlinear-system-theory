@@ -1,9 +1,14 @@
 #include "spacecraft_sim/dynamics.h"
+#include <iostream>
+#include <iomanip>
 
 Dynamics::Dynamics(Dynamics::Params dyn_params) :
   RK4_(true),
   gravity_{0, 0, 0}
 {
+  std::cout.precision(5);
+  std::cout << std::fixed;
+  
   mass_ = dyn_params.mass;
   inertia_ = dyn_params.inertia;
   inertia_inv_ = inertia_.inverse();
@@ -19,15 +24,14 @@ void Dynamics::f(const State &x, const Vector6d &forces_and_torques, dState &dx)
   dx.datt = x.omega;
   dx.dvel = f/mass_ + x.pose.q_.rotp(gravity_) - x.omega.cross(x.vel);
   dx.domega = inertia_inv_ * tau - x.omega.cross(inertia_ * x.omega);
+  
+  // std::cout << "dx.dpos: " <<  dx.dpos.transpose() << std::endl;
 }
 
 void Dynamics::stepDynamics(State& x, int* cmds, double dt, State& xp)
 {
-
   x_ = x;
   calculateForces(x, cmds, dt, u_);
-
-  // std::cout << "\nx: " << x.arr.transpose() << ", u_: " << u_.transpose() << std::endl;
 
   if (RK4_)
   {

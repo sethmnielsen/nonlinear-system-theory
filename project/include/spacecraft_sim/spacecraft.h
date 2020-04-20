@@ -18,10 +18,10 @@ public:
     void calculateForces(State &x, int *cmds, double t, Vector6d& forces_and_torques) override;
 
 protected:
-    Eigen::MatrixXd force_allocation_matrix_;
-    Eigen::MatrixXd torque_allocation_matrix_;
-    Eigen::VectorXd desired_forces_;
-    Eigen::VectorXd desired_torques_;
-    Eigen::VectorXd actual_forces_;
-    Eigen::VectorXd actual_torques_;
+    Matrix4d force_allocation_matrix_ = Matrix4d::Zero();
+    Matrix4d torque_allocation_matrix_ = Matrix4d::Zero();
+    Vector4d desired_forces_ = Vector4d::Zero();
+    Vector4d desired_torques_ = Vector4d::Zero();
+    Vector4d actual_forces_ = Vector4d::Zero();
+    Vector4d actual_torques_ = Vector4d::Zero();
 };
